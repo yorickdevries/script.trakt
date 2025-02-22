@@ -28,6 +28,7 @@ class SyncMovies:
         kodiMovies = self.__kodiLoadMovies()
         if not isinstance(kodiMovies, list) and not kodiMovies:
             logger.debug("[Movies Sync] Kodi movie list is empty, aborting movie Sync.")
+            time.sleep(1)
             if sync.show_progress and not sync.run_silent:
                 progress.close()
             return
@@ -37,6 +38,7 @@ class SyncMovies:
             logger.debug(
                 "[Movies Sync] Error getting Trakt.tv movie list, aborting movie Sync."
             )
+            time.sleep(1)
             if sync.show_progress and not sync.run_silent:
                 progress.close()
             return
@@ -72,12 +74,15 @@ class SyncMovies:
             "[Movies Sync] Movies on Trakt.tv (%d), movies in Kodi (%d)."
             % (len(traktMovies), len(kodiMovies))
         )
+        time.sleep(1)
         logger.debug("[Movies Sync] Complete.")
+        time.sleep(1)
 
     def __kodiLoadMovies(self):
         self.sync.UpdateProgress(1, line2=kodiUtilities.getString(32079))
 
         logger.debug("[Movies Sync] Getting movie data from Kodi")
+        time.sleep(1)
         data = kodiUtilities.kodiJsonRequest(
             {
                 "jsonrpc": "2.0",
@@ -101,6 +106,7 @@ class SyncMovies:
         )
         if data["limits"]["total"] == 0:
             logger.debug("[Movies Sync] Kodi JSON request was empty.")
+            time.sleep(1)
             return
 
         kodi_movies = kodiUtilities.kodiRpcToTraktMediaObjects(data)
@@ -117,6 +123,7 @@ class SyncMovies:
         )
 
         logger.debug("[Movies Sync] Getting movie collection from Trakt.tv")
+        time.sleep(1)
 
         traktMovies = {}
         traktMovies = self.sync.traktapi.getMoviesCollected(traktMovies)
@@ -146,12 +153,14 @@ class SyncMovies:
             self.sync.UpdateProgress(fromPercent, line2=kodiUtilities.getString(32122))
 
             logger.debug("[Movies Sync] Getting playback progress from Trakt.tv")
+            time.sleep(1)
             try:
                 traktProgressMovies = self.sync.traktapi.getMoviePlaybackProgress()
             except Exception:
                 logger.debug(
                     "[Movies Sync] Invalid Trakt.tv playback progress list, possible error getting data from Trakt, aborting Trakt.tv playback update."
                 )
+                time.sleep(1)
                 return False
 
             i = 0
@@ -198,57 +207,62 @@ class SyncMovies:
                 "[Movies Sync] Compared movies, found %s to add."
                 % len(traktMoviesToAdd)
             )
+            time.sleep(1)
 
             if len(traktMoviesToAdd) == 0:
                 self.sync.UpdateProgress(
                     toPercent, line2=kodiUtilities.getString(32084)
                 )
                 logger.debug("[Movies Sync] Trakt.tv movie collection is up to date.")
+                time.sleep(1)
                 return
 
             titles = ", ".join(["%s" % (m["title"]) for m in traktMoviesToAdd])
             logger.debug(
-                "[Movies Sync] %i movie(s) will be added to Trakt.tv collection."
+                "[Movies Sync] %i movie(s) will be added to Trakt.tv collectionYORICK."
                 % len(traktMoviesToAdd)
             )
+            time.sleep(1)
             logger.debug("[Movies Sync] Movies to add : %s" % titles)
-
+            time.sleep(1)
+            logger.debug("[Movies Sync] Yorick test1")
+            time.sleep(1)
+            self.logx("Yorick test1.5")
+            time.sleep(1)
             self.sync.UpdateProgress(
                 fromPercent,
                 line2=kodiUtilities.getString(32063) % len(traktMoviesToAdd),
             )
+            logger.debug("Yorick test2")
+            self.logx("Yorick test2")
+            time.sleep(1)
 
-            # Send request to add movies on Trakt.tv
-            chunksize = 1
-            errorcount = 0
-            i = 0
-            x = float(len(traktMoviesToAdd))
-            for movie in traktMoviesToAdd:
-                chunk = [movie]
+            #moviesToAdd = {"movies": traktMoviesToAdd}
+            self.logx("Yorick test2.5")
+            time.sleep(1)
+            # logger.debug("Movies to add: %s" % moviesToAdd)
+            try:
+                self.logx("Yorick test2.75")
+                #self.logx(f"Yorick testxx:{str(moviesToAdd)}")
                 time.sleep(1)
-                if self.sync.IsCanceled():
-                    return
-                i += 1
-                y = ((i / x) * (toPercent - fromPercent)) + fromPercent
-                self.sync.UpdateProgress(
-                    int(y),
-                    line2=kodiUtilities.getString(42192)
-                    % ((i) * chunksize if (i) * chunksize < x else x, x),
-                )
-
-                moviesToAdd = {"movies": chunk}
-                # logger.debug("Movies to add: %s" % moviesToAdd)
-                try:
+                #curr = moviesToAdd.pop(0)
+                #logger.debug("Yorick test3")
+                #self.logx("Yorick test3")
+                #time.sleep(1)
+                n = 10
+                chunks = [traktMoviesToAdd[i:i + n] for i in range(0, len(traktMoviesToAdd), n)]
+                self.logx(f"Yorick test3 {len(chunks)}")
+                time.sleep(1)
+                for chunk in chunks:
+                    moviesToAdd = {"movies": chunk}
+                    #logger.debug("Movies to add: %s" % curr)
                     self.logx(f"Movies YOYOYO to add: {moviesToAdd}")
                     self.sync.traktapi.addToCollection(moviesToAdd)
-                    self.logx(f"DONE YOYOYO to add: {moviesToAdd}")
                     time.sleep(2)
-                except Exception as ex:
-                    message = utilities.createError(ex)
-                    logging.fatal(message)
-                    errorcount += 1
+            except Exception as ex:
+                message = utilities.createError(ex)
+                logging.fatal(message)
 
-            logger.debug("[Movies Sync] Movies added: %d error(s)" % errorcount)
             self.sync.UpdateProgress(
                 toPercent, line2=kodiUtilities.getString(32085) % len(traktMoviesToAdd)
             )
@@ -264,6 +278,7 @@ class SyncMovies:
             removeKodiMovies = copy.deepcopy(kodiMovies)
 
             logger.debug("[Movies Sync] Starting to remove.")
+            time.sleep(1)
             traktMoviesToRemove = utilities.compareMovies(
                 removeTraktMovies,
                 removeKodiMovies,
@@ -274,6 +289,7 @@ class SyncMovies:
                 "[Movies Sync] Compared movies, found %s to remove."
                 % len(traktMoviesToRemove)
             )
+            time.sleep(1)
 
             if len(traktMoviesToRemove) == 0:
                 self.sync.UpdateProgress(
@@ -282,6 +298,7 @@ class SyncMovies:
                 logger.debug(
                     "[Movies Sync] Trakt.tv movie collection is clean, no movies to remove."
                 )
+                time.sleep(1)
                 return
 
             titles = ", ".join(["%s" % (m["title"]) for m in traktMoviesToRemove])
@@ -289,43 +306,31 @@ class SyncMovies:
                 "[Movies Sync] %i movie(s) will be removed from Trakt.tv collection."
                 % len(traktMoviesToRemove)
             )
+            time.sleep(1)
             logger.debug("[Movies Sync] Movies removed: %s" % titles)
+            time.sleep(1)
 
             self.sync.UpdateProgress(
                 fromPercent,
                 line2=kodiUtilities.getString(32076) % len(traktMoviesToRemove),
             )
 
-            # Send request to remove movies on Trakt.tv
-            chunksize = 1
-            chunked_movies = utilities.chunks(
-                [movie for movie in traktMoviesToRemove], chunksize
-            )
-            errorcount = 0
-            i = 0
-            x = float(len(traktMoviesToRemove))
-            for chunk in chunked_movies:
+            #moviesToRemove = {"movies": traktMoviesToRemove}
+            try:
+                n = 10
+                chunks = [traktMoviesToRemove[i:i + n] for i in range(0, len(traktMoviesToRemove), n)]
+                self.logx(f"Yorick test3 {len(chunks)}")
                 time.sleep(1)
-                if self.sync.IsCanceled():
-                    return
-                i += 1
-                y = ((i / x) * (toPercent - fromPercent)) + fromPercent
-                self.sync.UpdateProgress(
-                    int(y),
-                    line2=kodiUtilities.getString(42193)
-                    % ((i) * chunksize if (i) * chunksize < x else x, x),
-                )
-
-                moviesToRemove = {"movies": chunk}
-                # logger.debug("Movies to remove: %s" % traktMoviesToRemove)
-                try:
+                for chunk in chunks:
+                    moviesToRemove = {"movies": chunk}
+                    #logger.debug("Movies to add: %s" % curr)
+                    self.logx(f"Movies YOYOYO to add: {moviesToRemove}")
                     self.sync.traktapi.removeFromCollection(moviesToRemove)
-                except Exception as ex:
-                    message = utilities.createError(ex)
-                    logging.fatal(message)
-                    errorcount += 1
+                    time.sleep(2)
+            except Exception as ex:
+                message = utilities.createError(ex)
+                logging.fatal(message)
 
-            logger.debug("[Movies Sync] Movies removed: %d error(s)" % errorcount)
             self.sync.UpdateProgress(
                 toPercent,
                 line2=kodiUtilities.getString(32092) % len(traktMoviesToRemove),
@@ -354,6 +359,7 @@ class SyncMovies:
                     toPercent, line2=kodiUtilities.getString(32086)
                 )
                 logger.debug("[Movies Sync] Trakt.tv movie playcount is up to date")
+                time.sleep(1)
                 return
 
             titles = ", ".join(["%s" % (m["title"]) for m in traktMoviesToUpdate])
@@ -362,6 +368,7 @@ class SyncMovies:
                 % len(traktMoviesToUpdate)
             )
             logger.debug("[Movies Sync] Movies updated: %s" % titles)
+            time.sleep(1)
 
             self.sync.UpdateProgress(
                 fromPercent,
@@ -396,6 +403,7 @@ class SyncMovies:
                     errorcount += 1
 
             logger.debug("[Movies Sync] Movies updated: %d error(s)" % errorcount)
+            time.sleep(1)
             self.sync.UpdateProgress(
                 toPercent,
                 line2=kodiUtilities.getString(32087) % len(traktMoviesToUpdate),
@@ -422,6 +430,7 @@ class SyncMovies:
                     toPercent, line2=kodiUtilities.getString(32088)
                 )
                 logger.debug("[Movies Sync] Kodi movie playcount is up to date.")
+                time.sleep(1)
                 return
 
             titles = ", ".join(["%s" % (m["title"]) for m in kodiMoviesToUpdate])
@@ -429,7 +438,9 @@ class SyncMovies:
                 "[Movies Sync] %i movie(s) playcount will be updated in Kodi"
                 % len(kodiMoviesToUpdate)
             )
+            time.sleep(1)
             logger.debug("[Movies Sync] Movies to add: %s" % titles)
+            time.sleep(1)
 
             self.sync.UpdateProgress(
                 fromPercent,
