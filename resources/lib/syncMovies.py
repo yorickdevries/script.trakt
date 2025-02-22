@@ -212,14 +212,35 @@ class SyncMovies:
                 line2=kodiUtilities.getString(32063) % len(traktMoviesToAdd),
             )
 
-            moviesToAdd = {"movies": traktMoviesToAdd}
-            # logger.debug("Movies to add: %s" % moviesToAdd)
-            try:
-                self.sync.traktapi.addToCollection(moviesToAdd)
-            except Exception as ex:
-                message = utilities.createError(ex)
-                logging.fatal(message)
+            # Send request to add movies on Trakt.tv
+            chunksize = 25
+            chunked_movies = utilities.chunks(
+                [movie for movie in traktMoviesToAdd], chunksize
+            )
+            errorcount = 0
+            i = 0
+            x = float(len(traktMoviesToAdd))
+            for chunk in chunked_movies:
+                if self.sync.IsCanceled():
+                    return
+                i += 1
+                y = ((i / x) * (toPercent - fromPercent)) + fromPercent
+                self.sync.UpdateProgress(
+                    int(y),
+                    line2=kodiUtilities.getString(42192)
+                    % ((i) * chunksize if (i) * chunksize < x else x, x),
+                )
 
+                moviesToAdd = {"movies": chunk}
+                # logger.debug("Movies to add: %s" % moviesToAdd)
+                try:
+                    self.sync.traktapi.addToCollection(moviesToAdd)
+                except Exception as ex:
+                    message = utilities.createError(ex)
+                    logging.fatal(message)
+                    errorcount += 1
+
+            logger.debug("[Movies Sync] Movies added: %d error(s)" % errorcount)
             self.sync.UpdateProgress(
                 toPercent, line2=kodiUtilities.getString(32085) % len(traktMoviesToAdd)
             )
@@ -267,13 +288,35 @@ class SyncMovies:
                 line2=kodiUtilities.getString(32076) % len(traktMoviesToRemove),
             )
 
-            moviesToRemove = {"movies": traktMoviesToRemove}
-            try:
-                self.sync.traktapi.removeFromCollection(moviesToRemove)
-            except Exception as ex:
-                message = utilities.createError(ex)
-                logging.fatal(message)
+            # Send request to remove movies on Trakt.tv
+            chunksize = 25
+            chunked_movies = utilities.chunks(
+                [movie for movie in traktMoviesToRemove], chunksize
+            )
+            errorcount = 0
+            i = 0
+            x = float(len(traktMoviesToRemove))
+            for chunk in chunked_movies:
+                if self.sync.IsCanceled():
+                    return
+                i += 1
+                y = ((i / x) * (toPercent - fromPercent)) + fromPercent
+                self.sync.UpdateProgress(
+                    int(y),
+                    line2=kodiUtilities.getString(42193)
+                    % ((i) * chunksize if (i) * chunksize < x else x, x),
+                )
 
+                moviesToRemove = {"movies": chunk}
+                # logger.debug("Movies to remove: %s" % traktMoviesToRemove)
+                try:
+                    self.sync.traktapi.removeFromCollection(moviesToRemove)
+                except Exception as ex:
+                    message = utilities.createError(ex)
+                    logging.fatal(message)
+                    errorcount += 1
+
+            logger.debug("[Movies Sync] Movies removed: %d error(s)" % errorcount)
             self.sync.UpdateProgress(
                 toPercent,
                 line2=kodiUtilities.getString(32092) % len(traktMoviesToRemove),

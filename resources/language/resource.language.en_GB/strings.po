@@ -777,3 +777,11 @@ msgstr ""
 msgctxt "#42191"
 msgid "Optional password needed to authenticate with the proxy."
 msgstr ""
+
+msgctxt "#42192"
+msgid "Adding %i of %i movie(s) to your Trakt collection"
+msgstr ""
+
+msgctxt "#42193"
+msgid "Removing %i of %i movie(s) from your Trakt collection"
+msgstr ""
