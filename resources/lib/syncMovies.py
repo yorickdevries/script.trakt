@@ -2,6 +2,7 @@
 
 import copy
 import logging
+import time
 
 from resources.lib import kodiUtilities, utilities
 
@@ -172,6 +173,11 @@ class SyncMovies:
 
             return moviesProgress
 
+    def logx(self, text):
+        self.sync.UpdateProgress(
+            50, line2=kodiUtilities.getString(32115) % (0, text)
+        )
+
     def __addMoviesToTraktCollection(
         self, kodiMovies, traktMovies, fromPercent, toPercent
     ):
@@ -213,14 +219,13 @@ class SyncMovies:
             )
 
             # Send request to add movies on Trakt.tv
-            chunksize = 25
-            chunked_movies = utilities.chunks(
-                [movie for movie in traktMoviesToAdd], chunksize
-            )
+            chunksize = 1
             errorcount = 0
             i = 0
             x = float(len(traktMoviesToAdd))
-            for chunk in chunked_movies:
+            for movie in traktMoviesToAdd:
+                chunk = [movie]
+                time.sleep(1)
                 if self.sync.IsCanceled():
                     return
                 i += 1
@@ -234,7 +239,10 @@ class SyncMovies:
                 moviesToAdd = {"movies": chunk}
                 # logger.debug("Movies to add: %s" % moviesToAdd)
                 try:
+                    self.logx(f"Movies YOYOYO to add: {moviesToAdd}")
                     self.sync.traktapi.addToCollection(moviesToAdd)
+                    self.logx(f"DONE YOYOYO to add: {moviesToAdd}")
+                    time.sleep(2)
                 except Exception as ex:
                     message = utilities.createError(ex)
                     logging.fatal(message)
@@ -289,7 +297,7 @@ class SyncMovies:
             )
 
             # Send request to remove movies on Trakt.tv
-            chunksize = 25
+            chunksize = 1
             chunked_movies = utilities.chunks(
                 [movie for movie in traktMoviesToRemove], chunksize
             )
@@ -297,6 +305,7 @@ class SyncMovies:
             i = 0
             x = float(len(traktMoviesToRemove))
             for chunk in chunked_movies:
+                time.sleep(1)
                 if self.sync.IsCanceled():
                     return
                 i += 1
